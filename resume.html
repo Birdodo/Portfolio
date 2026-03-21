@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dorian Sanchez — Software Engineer</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0c0b09;
+    --surface: #141210;
+    --border: #2a2318;
+    --accent: #ff6a00;
+    --accent2: #3b8bff;
+    --text: #e8dfd4;
+    --muted: #7a6e60;
+    --mono: 'Space Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 300;
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,106,0,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,106,0,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Ambient glow */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px;
+    left: -200px;
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, rgba(255,106,0,0.07) 0%, rgba(59,139,255,0.03) 50%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+    animation: drift 12s ease-in-out infinite alternate;
+  }
+
+  @keyframes drift {
+    from { transform: translate(0, 0); }
+    to   { transform: translate(120px, 80px); }
+  }
+
+  /* ── Layout ── */
+  .page {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 80px 32px 120px;
+  }
+
+  /* ── Header ── */
+  header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    gap: 32px;
+    margin-bottom: 72px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards;
+  }
+
+  .name-block {}
+
+  .prompt {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .prompt::before {
+    content: '▸';
+    font-size: 14px;
+  }
+
+  h1 {
+    font-family: var(--mono);
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: #fff;
+  }
+
+  h1 span {
+    color: var(--accent);
+  }
+
+  .tagline {
+    margin-top: 16px;
+    font-size: 1rem;
+    color: var(--muted);
+    font-style: italic;
+    max-width: 420px;
+    line-height: 1.6;
+  }
+
+  .contact-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    padding-top: 8px;
+  }
+
+  .contact-item {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: color 0.2s;
+    text-decoration: none;
+  }
+  .contact-item:hover { color: var(--accent); }
+
+  .contact-item .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.8;
+    flex-shrink: 0;
+  }
+
+  /* ── Divider ── */
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, var(--accent) 0%, transparent 60%);
+    margin-bottom: 56px;
+    opacity: 0;
+    animation: fadeIn 0.6s 0.4s ease forwards;
+  }
+
+  /* ── Section ── */
+  section {
+    margin-bottom: 64px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  section.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── About ── */
+  .about-text {
+    font-size: 1.05rem;
+    color: var(--text);
+    max-width: 620px;
+    line-height: 1.8;
+    border-left: 2px solid var(--accent);
+    padding-left: 20px;
+  }
+
+  /* ── Skills ── */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+
+  .skill-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 18px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .skill-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .skill-card::before {
+    content: attr(data-lang);
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .skill-name {
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .skill-desc {
+    color: var(--muted);
+    font-size: 10px;
+    line-height: 1.5;
+    font-family: var(--sans);
+  }
+
+  /* ── Experience ── */
+  .exp-list {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .exp-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px 28px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .exp-item:hover { border-color: var(--accent); }
+
+  .exp-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    border-radius: 8px 0 0 8px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .exp-item:hover::before { opacity: 1; }
+
+  .exp-role {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 2px;
+  }
+  .exp-org {
+    font-size: 12px;
+    color: var(--accent2);
+    margin-bottom: 12px;
+    font-family: var(--mono);
+    letter-spacing: 0.05em;
+  }
+  .exp-bullets {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .exp-bullets li {
+    font-size: 13px;
+    color: var(--text);
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .exp-bullets li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-size: 11px;
+  }
+
+  .exp-meta {
+    text-align: right;
+  }
+  .exp-date {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+  .exp-location {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    margin-top: 4px;
+  }
+
+  /* ── Education ── */
+  .edu-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px 32px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    transition: border-color 0.2s;
+  }
+  .edu-card:hover { border-color: var(--accent); }
+
+  .edu-degree {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .edu-school {
+    font-size: 13px;
+    color: var(--accent2);
+    font-family: var(--mono);
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
+  }
+  .edu-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,106,0,0.1);
+    border: 1px solid rgba(255,106,0,0.3);
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+  .edu-badge + .edu-badge { margin-left: 8px; }
+
+  .edu-right {
+    text-align: right;
+  }
+  .edu-grad {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  /* ── Accolades ── */
+  .accolade-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .accolade-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 10px 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .accolade-pill:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .accolade-pill::before {
+    content: '★';
+    font-size: 10px;
+    color: var(--accent);
+  }
+
+  /* ── Projects ── */
+  .project-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .project-card:hover { border-color: var(--accent); }
+
+  .project-header {
+    padding: 20px 24px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .project-title {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .project-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+    max-width: 520px;
+  }
+  .project-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent2);
+    background: rgba(59,139,255,0.08);
+    border: 1px solid rgba(59,139,255,0.2);
+    border-radius: 4px;
+    padding: 3px 8px;
+    white-space: nowrap;
+  }
+
+  .game-wrapper {
+    border-top: 1px solid var(--border);
+    background: #000;
+    position: relative;
+  }
+  .game-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .game-controls-hint {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+  .game-controls-hint span {
+    color: var(--text);
+    background: rgba(255,255,255,0.07);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 5px;
+    margin: 0 2px;
+  }
+  .game-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--bg);
+    background: var(--accent);
+    border: none;
+    border-radius: 4px;
+    padding: 6px 14px;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    transition: opacity 0.15s;
+  }
+  .game-btn:hover { opacity: 0.85; }
+
+  #ballCanvas {
+    display: block;
+    width: 100%;
+    height: 360px;
+    cursor: crosshair;
+  }
+
+  /* ── Footer ── */
+  footer {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    letter-spacing: 0.06em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.3; }
+  }
+
+  /* ── Animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    header { grid-template-columns: 1fr; }
+    .contact-block { align-items: flex-start; }
+    .exp-item { grid-template-columns: 1fr; }
+    .exp-meta { text-align: left; }
+    .edu-card { grid-template-columns: 1fr; }
+    .edu-right { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <header>
+    <div class="name-block">
+      <div class="prompt">resume.exe</div>
+      <h1>Dorian<br><span>Sanchez</span></h1>
+      <p class="tagline">Passionate about readable, functional software — building thoughtfully, one line at a time.</p>
+    </div>
+    <div class="contact-block">
+      <a class="contact-item" href="/cdn-cgi/l/email-protection#b0f4dfc2d9d1dee6e3d1ded3d8d5caf0d7ddd1d9dc9ed3dfdd">
+        <span class="dot"></span> <span class="__cf_email__" data-cfemail="f5b19a879c949ba3a6949b969d908fb59298949c99db969a98">[email&#160;protected]</span>
+      </a>
+      <a class="contact-item" href="tel:4804507740">
+        <span class="dot"></span> 480-450-7740
+      </a>
+      <span class="contact-item">
+        <span class="dot"></span> Mesa, AZ
+      </span>
+    </div>
+  </header>
+
+  <div class="divider"></div>
+
+  <!-- About -->
+  <section id="about">
+    <div class="section-label">01 // about</div>
+    <p class="about-text">
+      Software Engineering student at Northern Arizona University with a strong commitment to clean, readable code. My adherence to readability guidelines and best practices makes me a reliable collaborator in any team environment — from tutoring peers to shipping features.
+    </p>
+  </section>
+
+  <!-- Skills -->
+  <section id="skills">
+    <div class="section-label">02 // skills</div>
+    <div class="skills-grid">
+      <div class="skill-card" data-lang="lang">
+        <div class="skill-name">C / C++ / C#</div>
+        <div class="skill-desc">Fluent in the C family — from systems-level work to object-oriented design.</div>
+      </div>
+      <div class="skill-card" data-lang="lang">
+        <div class="skill-name">Python</div>
+        <div class="skill-desc">Scripting, algorithms, and general-purpose development.</div>
+      </div>
+      <div class="skill-card" data-lang="web">
+        <div class="skill-name">HTML / CSS / JS</div>
+        <div class="skill-desc">Full-stack web development and proficient frontend skills.</div>
+      </div>
+      <div class="skill-card" data-lang="tool">
+        <div class="skill-name">Autodesk Inventor</div>
+        <div class="skill-desc">Certified in 3D CAD modeling and design workflows.</div>
+      </div>
+      <div class="skill-card" data-lang="soft">
+        <div class="skill-name">Software Design</div>
+        <div class="skill-desc">Algorithm design, implementation, and systematic testing.</div>
+      </div>
+      <div class="skill-card" data-lang="soft">
+        <div class="skill-name">Communication</div>
+        <div class="skill-desc">Knowledgeable with customer-facing and team communication.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Experience -->
+  <section id="experience">
+    <div class="section-label">03 // experience</div>
+    <div class="exp-list">
+
+      <div class="exp-item">
+        <div>
+          <div class="exp-role">Computer Science Tutor</div>
+          <div class="exp-org">Northern Arizona University</div>
+          <ul class="exp-bullets">
+            <li>Tutored students in beginning-level CS coursework, reinforcing foundational concepts.</li>
+            <li>Supported intermediate-level CS classes, helping students with algorithms and data structures.</li>
+          </ul>
+        </div>
+        <div class="exp-meta">
+          <div class="exp-date">Aug 2025 — Present</div>
+          <div class="exp-location">Flagstaff, AZ</div>
+        </div>
+      </div>
+
+      <div class="exp-item">
+        <div>
+          <div class="exp-role">Meat Clerk</div>
+          <div class="exp-org">Fry's Marketplace</div>
+          <ul class="exp-bullets">
+            <li>Stocked, rotated, and marked down product to maintain quality standards.</li>
+            <li>Prepared customer orders at the service counter with precision and care.</li>
+            <li>Organized storage areas according to company standards; placed product orders.</li>
+          </ul>
+        </div>
+        <div class="exp-meta">
+          <div class="exp-date">May 2025 — Aug 2025</div>
+          <div class="exp-location">Scottsdale, AZ</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Education -->
+  <section id="education">
+    <div class="section-label">04 // education</div>
+    <div class="edu-card">
+      <div>
+        <div class="edu-degree">B.S. Software Engineering</div>
+        <div class="edu-school">Northern Arizona University</div>
+        <div>
+          <span class="edu-badge">Dean's List</span>
+          <span class="edu-badge">&gt; 3.95 GPA</span>
+        </div>
+      </div>
+      <div class="edu-right">
+        <div class="edu-grad">Expected May 2027</div>
+        <div class="edu-grad" style="margin-top:4px;">Fall 2023 – Spring 2026</div>
+        <div class="edu-grad" style="margin-top:4px;">Flagstaff, AZ</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Accolades -->
+  <section id="accolades">
+    <div class="section-label">05 // accolades</div>
+    <div class="accolade-list">
+      <div class="accolade-pill">Certified in Autodesk Inventor</div>
+      <div class="accolade-pill">Dean's List — Fall 2023 to Spring 2026</div>
+    </div>
+  </section>
+
+  <!-- Projects -->
+  <section id="projects">
+    <div class="section-label">06 // projects</div>
+    <div class="project-card">
+      <div class="project-header">
+        <div>
+          <div class="project-title">Physics Ball Simulation</div>
+          <div class="project-desc">An SDL2 ball physics engine written in C — featuring real-time gravity, elastic collisions, a spatial grid for broad-phase detection, and a player-controlled ball. Ported to the browser below.</div>
+        </div>
+        <span class="project-tag">C / SDL2</span>
+      </div>
+      <div class="game-wrapper">
+        <div class="game-toolbar">
+          <div class="game-controls-hint">
+            <span>W</span>Jump &nbsp;·&nbsp;
+            <span>A</span><span>S</span><span>D</span>Move &nbsp;·&nbsp;
+            <span>Shift</span>Fly &nbsp;·&nbsp;
+            <span>Space</span>Zero-G &nbsp;·&nbsp;
+            <span>Click</span>Spawn ball
+          </div>
+          <button class="game-btn" id="resetBtn">↺ Reset</button>
+        </div>
+        <canvas id="ballCanvas"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <span>Dorian V. Sanchez © 2026</span>
+    <span class="footer-status">
+      <span class="status-dot"></span>
+      Open to opportunities
+    </span>
+  </footer>
+
+</div>
+
+<script>
+  // Reveal sections on scroll (also catches already-visible ones via rootMargin)
+  const sections = document.querySelectorAll('section');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.05, rootMargin: '0px 0px -40px 0px' });
+
+  sections.forEach(s => observer.observe(s));
+
+  // Stagger skill cards when skills section appears
+  document.querySelectorAll('.skill-card').forEach((card, i) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(12px)';
+    card.style.transition = `opacity 0.4s ${0.07 * i}s ease, transform 0.4s ${0.07 * i}s ease, border-color 0.2s`;
+  });
+
+  const skillSection = document.querySelector('#skills');
+  const skillObserver = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+      document.querySelectorAll('.skill-card').forEach(card => {
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      });
+      skillObserver.disconnect();
+    }
+  }, { threshold: 0.1 });
+  if (skillSection) skillObserver.observe(skillSection);
+
+  // ─── Ball Simulation ───────────────────────────────────────────
+  (function() {
+    const canvas = document.getElementById('ballCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Mirror original globals
+    let ball_radius = 10;
+    const FPS = 60;
+    const DT = 1 / FPS;
+    const MIN_SPEED = 0.015;
+    const acceleration = 400;
+    const max_speed = 3000;
+    const mass = 2.0;
+    const damping = 0.9;
+    const wind_resistance = 1.0 - 0.001; // wind_resistance -= 0.001
+    const gravity_base = 500;
+
+    let W, H;
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      W = canvas.width  = rect.width;
+      H = canvas.height = rect.height;
+    }
+    resize();
+    window.addEventListener('resize', () => { resize(); });
+
+    function makeBall(x, y, id) {
+      return { x, y, vx: 0, vy: 0, ax: 0, ay: 0, id };
+    }
+
+    let balls = [];
+    let nextId = 0;
+
+    function initBalls(n) {
+      balls = [];
+      nextId = 0;
+      let xVal = -ball_radius;
+      let yVal = H / 2;
+      for (let i = 0; i < n; i++) {
+        xVal += 2 * ball_radius;
+        if (xVal > W) { yVal += 2 * ball_radius; xVal = ball_radius; }
+        balls.push(makeBall(xVal, yVal, nextId++));
+      }
+    }
+    initBalls(10);
+
+    // Input state
+    const keys = {};
+    window.addEventListener('keydown', e => { keys[e.code] = true; });
+    window.addEventListener('keyup',   e => { keys[e.code] = false; });
+
+    // Click to spawn
+    canvas.addEventListener('click', e => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = (e.clientX - rect.left) * (W / rect.width);
+      const my = (e.clientY - rect.top)  * (H / rect.height);
+      balls.push(makeBall(mx, my, nextId++));
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      resize();
+      initBalls(10);
+    });
+
+    function collision(a, b) {
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      const minDist = 2 * ball_radius;
+      if (dist === 0 || dist >= minDist) return;
+      const nx = dx / dist, ny = dy / dist;
+      const pen = (minDist - dist) / 2;
+      a.x -= nx * pen; a.y -= ny * pen;
+      b.x += nx * pen; b.y += ny * pen;
+      const rvx = b.vx - a.vx, rvy = b.vy - a.vy;
+      const van = rvx * nx + rvy * ny;
+      if (van > 0) return;
+      const j = -(1 + 1.0) * van / 2;
+      a.vx -= j * nx; a.vy -= j * ny;
+      b.vx += j * nx; b.vy += j * ny;
+    }
+
+    // Grid helpers
+    function buildGrid() {
+      const diam = ball_radius * 2;
+      const gw = Math.ceil(W / diam) + 1;
+      const gh = Math.ceil(H / diam) + 1;
+      // Use a flat Map keyed by cell index
+      const cells = new Map();
+      for (const b of balls) {
+        const gx = Math.floor(b.x / diam);
+        const gy = Math.floor(b.y / diam);
+        const key = gx * 10000 + gy;
+        if (!cells.has(key)) cells.set(key, []);
+        cells.get(key).push(b);
+      }
+      return { cells, gw, gh, diam };
+    }
+
+    let lastTime = performance.now();
+    let accumulator = 0;
+
+    function step() {
+      const player = balls[0];
+      const eff_acc = acceleration / mass;
+      const jump_speed = eff_acc * 1.5;
+      const sprint = keys['ShiftLeft'] ? 2 : 1;
+      const zeroG = keys['Space'];
+      const eff_gravity = zeroG ? 0 : gravity_base;
+
+      // Apply player controls
+      if (player) {
+        player.ax = 0; player.ay = 0;
+        if (keys['ShiftLeft']) player.ay -= eff_gravity;
+        if (keys['KeyW']) {
+          if (sprint === 2 || zeroG) {
+            player.ay -= eff_acc * sprint;
+          } else {
+            if (player.y + ball_radius + 1 > H) player.vy = -jump_speed;
+          }
+        }
+        if (keys['KeyS']) player.ay += eff_acc * sprint;
+        if (keys['KeyA']) player.ax -= eff_acc * sprint;
+        if (keys['KeyD']) player.ax += eff_acc * sprint;
+      }
+
+      const { cells, diam } = buildGrid();
+
+      for (const b of balls) {
+        if (b.id !== 0) { b.ax = 0; b.ay = 0; }
+        b.ay += eff_gravity;
+        b.vx += b.ax * DT;
+        b.vy += b.ay * DT;
+
+        const speed = Math.sqrt(b.vx*b.vx + b.vy*b.vy);
+        if (speed > max_speed) { const s = max_speed/speed; b.vx*=s; b.vy*=s; }
+        if (speed < MIN_SPEED) { b.vx = 0; b.vy = 0; }
+
+        b.x += b.vx * DT;
+        b.y += b.vy * DT;
+
+        if (b.x - ball_radius < 0)  { b.x = ball_radius;    b.vx = -b.vx * damping; }
+        if (b.x + ball_radius > W)  { b.x = W - ball_radius; b.vx = -b.vx * damping; }
+        if (b.y - ball_radius < 0)  { b.y = ball_radius;    b.vy = -b.vy * damping; }
+        if (b.y + ball_radius > H)  { b.y = H - ball_radius; b.vy = -b.vy * damping; }
+
+        b.vx *= wind_resistance;
+        b.vy *= wind_resistance;
+
+        // Collisions with neighbors
+        const gx = Math.floor(b.x / diam);
+        const gy = Math.floor(b.y / diam);
+        for (let ox = gx-1; ox <= gx+1; ox++) {
+          for (let oy = gy-1; oy <= gy+1; oy++) {
+            const neighbors = cells.get(ox * 10000 + oy);
+            if (!neighbors) continue;
+            for (const other of neighbors) {
+              if (b.id > other.id) collision(b, other);
+            }
+          }
+        }
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      for (const b of balls) {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, ball_radius, 0, Math.PI * 2);
+        if (b.id === 0) {
+          ctx.strokeStyle = '#ff6a00';
+          ctx.fillStyle = 'rgba(255,106,0,0.15)';
+        } else {
+          ctx.strokeStyle = '#fff';
+          ctx.fillStyle = 'rgba(255,255,255,0.06)';
+        }
+        ctx.lineWidth = 2;
+        ctx.fill();
+        ctx.stroke();
+      }
+    }
+
+    function loop(ts) {
+      const delta = Math.min((ts - lastTime) / 1000, 0.05);
+      lastTime = ts;
+      accumulator += delta;
+      while (accumulator >= DT) {
+        step();
+        accumulator -= DT;
+      }
+      draw();
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(ts => { lastTime = ts; requestAnimationFrame(loop); });
+  })();
+
+</script>
+</body>
+</html>
