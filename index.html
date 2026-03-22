@@ -509,6 +509,102 @@
     cursor: crosshair;
   }
 
+  /* Settings panel */
+  .game-settings {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease, padding 0.35s ease;
+  }
+  .game-settings.open {
+    max-height: 600px;
+    padding: 20px 24px;
+  }
+  .settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px 24px;
+  }
+  .setting-row {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .setting-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+  }
+  .setting-label .setting-val {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .setting-row input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  .setting-row input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .setting-row input[type=range]::-webkit-slider-thumb:hover {
+    transform: scale(1.25);
+  }
+  .setting-row input[type=number] {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 5px 8px;
+    width: 100%;
+    outline: none;
+  }
+  .setting-row input[type=number]:focus {
+    border-color: var(--accent);
+  }
+  .settings-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+  .game-btn-secondary {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 14px;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .game-btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .settings-toggle.active {
+    background: rgba(255,106,0,0.15);
+    color: var(--accent);
+  }
+
   /* ── Footer ── */
   footer {
     margin-top: 80px;
@@ -713,8 +809,54 @@
             <span>Space</span>Zero-G &nbsp;·&nbsp;
             <span>Click</span>Spawn ball
           </div>
-          <button class="game-btn" id="resetBtn">↺ Reset</button>
+          <div style="display:flex;gap:8px;">
+            <button class="game-btn settings-toggle" id="settingsBtn">⚙ Settings</button>
+            <button class="game-btn" id="resetBtn">↺ Reset</button>
+          </div>
         </div>
+
+        <!-- Settings Panel -->
+        <div class="game-settings" id="gameSettings">
+          <div class="settings-grid">
+            <div class="setting-row">
+              <label class="setting-label">Gravity <span class="setting-val" id="val-gravity">500</span></label>
+              <input type="range" id="set-gravity" min="0" max="1500" step="10" value="500">
+            </div>
+            <div class="setting-row">
+              <label class="setting-label">Acceleration <span class="setting-val" id="val-acceleration">400</span></label>
+              <input type="range" id="set-acceleration" min="50" max="1200" step="10" value="400">
+            </div>
+            <div class="setting-row">
+              <label class="setting-label">Max Speed <span class="setting-val" id="val-maxspeed">3000</span></label>
+              <input type="range" id="set-maxspeed" min="100" max="6000" step="100" value="3000">
+            </div>
+            <div class="setting-row">
+              <label class="setting-label">Restitution <span class="setting-val" id="val-damping">0.90</span></label>
+              <input type="range" id="set-damping" min="0" max="1" step="0.01" value="0.9">
+            </div>
+            <div class="setting-row">
+              <label class="setting-label">Wind Resistance <span class="setting-val" id="val-wind">0.001</span></label>
+              <input type="range" id="set-wind" min="0" max="0.05" step="0.001" value="0.001">
+            </div>
+            <div class="setting-row">
+              <label class="setting-label">Ball Radius <span class="setting-val" id="val-radius">10</span></label>
+              <input type="range" id="set-radius" min="4" max="40" step="1" value="10">
+            </div>
+            <div class="setting-row">
+              <label class="setting-label">Ball Count <span class="setting-val" id="val-count">10</span></label>
+              <input type="range" id="set-count" min="1" max="80" step="1" value="10">
+            </div>
+            <div class="setting-row">
+              <label class="setting-label">Mass <span class="setting-val" id="val-mass">2.0</span></label>
+              <input type="range" id="set-mass" min="0.5" max="10" step="0.5" value="2">
+            </div>
+          </div>
+          <div class="settings-footer">
+            <button class="game-btn-secondary" id="defaultsBtn">Restore Defaults</button>
+            <button class="game-btn" id="applyBtn">↺ Reset Balls</button>
+          </div>
+        </div>
+
         <canvas id="ballCanvas"></canvas>
       </div>
     </div>
@@ -769,194 +911,160 @@
     const canvas = document.getElementById('ballCanvas');
     const ctx = canvas.getContext('2d');
 
-    // Mirror original globals
-    let ball_radius = 10;
-    const FPS = 60;
-    const DT = 1 / FPS;
-    const MIN_SPEED = 0.015;
-    const acceleration = 400;
-    const max_speed = 3000;
-    const mass = 2.0;
-    const damping = 0.9;
-    const wind_resistance = 1.0 - 0.001; // wind_resistance -= 0.001
-    const gravity_base = 500;
+    const FPS = 60, DT = 1/FPS, MIN_SPEED = 0.015;
+
+    const DEFAULTS = {
+      gravity: 500, acceleration: 400, max_speed: 3000,
+      damping: 0.9, wind: 0.001, ball_radius: 10, num_balls: 10, mass: 2.0
+    };
+    let S = { ...DEFAULTS };
 
     let W, H;
     function resize() {
       const rect = canvas.getBoundingClientRect();
-      W = canvas.width  = rect.width;
+      W = canvas.width = rect.width;
       H = canvas.height = rect.height;
     }
     resize();
-    window.addEventListener('resize', () => { resize(); });
+    window.addEventListener('resize', () => resize());
 
-    function makeBall(x, y, id) {
-      return { x, y, vx: 0, vy: 0, ax: 0, ay: 0, id };
-    }
-
-    let balls = [];
-    let nextId = 0;
-
+    function makeBall(x, y, id) { return { x, y, vx:0, vy:0, ax:0, ay:0, id }; }
+    let balls = [], nextId = 0;
     function initBalls(n) {
-      balls = [];
-      nextId = 0;
-      let xVal = -ball_radius;
-      let yVal = H / 2;
-      for (let i = 0; i < n; i++) {
-        xVal += 2 * ball_radius;
-        if (xVal > W) { yVal += 2 * ball_radius; xVal = ball_radius; }
+      balls = []; nextId = 0;
+      let xVal = -S.ball_radius, yVal = H/2;
+      for (let i=0; i<n; i++) {
+        xVal += 2*S.ball_radius;
+        if (xVal > W) { yVal += 2*S.ball_radius; xVal = S.ball_radius; }
         balls.push(makeBall(xVal, yVal, nextId++));
       }
     }
-    initBalls(10);
+    initBalls(S.num_balls);
 
-    // Input state
     const keys = {};
     window.addEventListener('keydown', e => { keys[e.code] = true; });
     window.addEventListener('keyup',   e => { keys[e.code] = false; });
-
-    // Click to spawn
     canvas.addEventListener('click', e => {
       const rect = canvas.getBoundingClientRect();
-      const mx = (e.clientX - rect.left) * (W / rect.width);
-      const my = (e.clientY - rect.top)  * (H / rect.height);
-      balls.push(makeBall(mx, my, nextId++));
+      balls.push(makeBall((e.clientX-rect.left)*(W/rect.width),(e.clientY-rect.top)*(H/rect.height),nextId++));
     });
 
+    // ── Settings panel ──
+    const settingsBtn   = document.getElementById('settingsBtn');
+    const settingsPanel = document.getElementById('gameSettings');
+    settingsBtn.addEventListener('click', () => {
+      const open = settingsPanel.classList.toggle('open');
+      settingsBtn.classList.toggle('active', open);
+      settingsBtn.textContent = open ? '✕ Close' : '⚙ Settings';
+    });
+
+    const sliderMap = [
+      { id:'set-gravity',      val:'val-gravity',      key:'gravity',      fmt: v => Math.round(v) },
+      { id:'set-acceleration', val:'val-acceleration', key:'acceleration', fmt: v => Math.round(v) },
+      { id:'set-maxspeed',     val:'val-maxspeed',     key:'max_speed',    fmt: v => Math.round(v) },
+      { id:'set-damping',      val:'val-damping',      key:'damping',      fmt: v => (+v).toFixed(2) },
+      { id:'set-wind',         val:'val-wind',         key:'wind',         fmt: v => (+v).toFixed(3) },
+      { id:'set-radius',       val:'val-radius',       key:'ball_radius',  fmt: v => Math.round(v) },
+      { id:'set-count',        val:'val-count',        key:'num_balls',    fmt: v => Math.round(v) },
+      { id:'set-mass',         val:'val-mass',         key:'mass',         fmt: v => (+v).toFixed(1) },
+    ];
+    sliderMap.forEach(({id, val, key, fmt}) => {
+      document.getElementById(id).addEventListener('input', function() {
+        S[key] = parseFloat(this.value);
+        document.getElementById(val).textContent = fmt(this.value);
+      });
+    });
+    function readSliders() {
+      sliderMap.forEach(({id,key}) => { S[key] = parseFloat(document.getElementById(id).value); });
+    }
+    function writeSliders(src) {
+      sliderMap.forEach(({id,val,key,fmt}) => {
+        document.getElementById(id).value = src[key];
+        document.getElementById(val).textContent = fmt(src[key]);
+      });
+    }
+    document.getElementById('applyBtn').addEventListener('click', () => {
+      resize(); initBalls(Math.round(S.num_balls));
+    });
+    document.getElementById('defaultsBtn').addEventListener('click', () => {
+      S = { ...DEFAULTS }; writeSliders(S); resize(); initBalls(S.num_balls);
+    });
     document.getElementById('resetBtn').addEventListener('click', () => {
-      resize();
-      initBalls(10);
+      resize(); initBalls(Math.round(S.num_balls));
     });
 
+    // ── Physics ──
     function collision(a, b) {
-      const dx = b.x - a.x, dy = b.y - a.y;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      const minDist = 2 * ball_radius;
-      if (dist === 0 || dist >= minDist) return;
-      const nx = dx / dist, ny = dy / dist;
-      const pen = (minDist - dist) / 2;
-      a.x -= nx * pen; a.y -= ny * pen;
-      b.x += nx * pen; b.y += ny * pen;
-      const rvx = b.vx - a.vx, rvy = b.vy - a.vy;
-      const van = rvx * nx + rvy * ny;
-      if (van > 0) return;
-      const j = -(1 + 1.0) * van / 2;
-      a.vx -= j * nx; a.vy -= j * ny;
-      b.vx += j * nx; b.vy += j * ny;
+      const dx=b.x-a.x, dy=b.y-a.y, dist=Math.sqrt(dx*dx+dy*dy), min=2*S.ball_radius;
+      if (!dist || dist>=min) return;
+      const nx=dx/dist, ny=dy/dist, pen=(min-dist)/2;
+      a.x-=nx*pen; a.y-=ny*pen; b.x+=nx*pen; b.y+=ny*pen;
+      const van=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;
+      if (van>0) return;
+      const j=-van;
+      a.vx-=j*nx; a.vy-=j*ny; b.vx+=j*nx; b.vy+=j*ny;
     }
-
-    // Grid helpers
     function buildGrid() {
-      const diam = ball_radius * 2;
-      const gw = Math.ceil(W / diam) + 1;
-      const gh = Math.ceil(H / diam) + 1;
-      // Use a flat Map keyed by cell index
-      const cells = new Map();
+      const diam=S.ball_radius*2, cells=new Map();
       for (const b of balls) {
-        const gx = Math.floor(b.x / diam);
-        const gy = Math.floor(b.y / diam);
-        const key = gx * 10000 + gy;
-        if (!cells.has(key)) cells.set(key, []);
-        cells.get(key).push(b);
+        const k=Math.floor(b.x/diam)*10000+Math.floor(b.y/diam);
+        if (!cells.has(k)) cells.set(k,[]);
+        cells.get(k).push(b);
       }
-      return { cells, gw, gh, diam };
+      return {cells,diam};
     }
-
-    let lastTime = performance.now();
-    let accumulator = 0;
 
     function step() {
-      const player = balls[0];
-      const eff_acc = acceleration / mass;
-      const jump_speed = eff_acc * 1.5;
-      const sprint = keys['ShiftLeft'] ? 2 : 1;
-      const zeroG = keys['Space'];
-      const eff_gravity = zeroG ? 0 : gravity_base;
-
-      // Apply player controls
-      if (player) {
-        player.ax = 0; player.ay = 0;
-        if (keys['ShiftLeft']) player.ay -= eff_gravity;
-        if (keys['KeyW']) {
-          if (sprint === 2 || zeroG) {
-            player.ay -= eff_acc * sprint;
-          } else {
-            if (player.y + ball_radius + 1 > H) player.vy = -jump_speed;
-          }
-        }
-        if (keys['KeyS']) player.ay += eff_acc * sprint;
-        if (keys['KeyA']) player.ax -= eff_acc * sprint;
-        if (keys['KeyD']) player.ax += eff_acc * sprint;
+      const p=balls[0], ea=S.acceleration/S.mass, js=ea*1.5;
+      const sprint=keys['ShiftLeft']?2:1, zeroG=!!keys['Space'];
+      const eg=zeroG?0:S.gravity, wr=1-S.wind;
+      if (p) {
+        p.ax=0; p.ay=0;
+        if (keys['ShiftLeft']) p.ay-=eg;
+        if (keys['KeyW']) { if (sprint===2||zeroG) p.ay-=ea*sprint; else if (p.y+S.ball_radius+1>H) p.vy=-js; }
+        if (keys['KeyS']) p.ay+=ea*sprint;
+        if (keys['KeyA']) p.ax-=ea*sprint;
+        if (keys['KeyD']) p.ax+=ea*sprint;
       }
-
-      const { cells, diam } = buildGrid();
-
+      const {cells,diam}=buildGrid();
       for (const b of balls) {
-        if (b.id !== 0) { b.ax = 0; b.ay = 0; }
-        b.ay += eff_gravity;
-        b.vx += b.ax * DT;
-        b.vy += b.ay * DT;
-
-        const speed = Math.sqrt(b.vx*b.vx + b.vy*b.vy);
-        if (speed > max_speed) { const s = max_speed/speed; b.vx*=s; b.vy*=s; }
-        if (speed < MIN_SPEED) { b.vx = 0; b.vy = 0; }
-
-        b.x += b.vx * DT;
-        b.y += b.vy * DT;
-
-        if (b.x - ball_radius < 0)  { b.x = ball_radius;    b.vx = -b.vx * damping; }
-        if (b.x + ball_radius > W)  { b.x = W - ball_radius; b.vx = -b.vx * damping; }
-        if (b.y - ball_radius < 0)  { b.y = ball_radius;    b.vy = -b.vy * damping; }
-        if (b.y + ball_radius > H)  { b.y = H - ball_radius; b.vy = -b.vy * damping; }
-
-        b.vx *= wind_resistance;
-        b.vy *= wind_resistance;
-
-        // Collisions with neighbors
-        const gx = Math.floor(b.x / diam);
-        const gy = Math.floor(b.y / diam);
-        for (let ox = gx-1; ox <= gx+1; ox++) {
-          for (let oy = gy-1; oy <= gy+1; oy++) {
-            const neighbors = cells.get(ox * 10000 + oy);
-            if (!neighbors) continue;
-            for (const other of neighbors) {
-              if (b.id > other.id) collision(b, other);
-            }
-          }
+        if (b.id!==0){b.ax=0;b.ay=0;}
+        b.ay+=eg; b.vx+=b.ax*DT; b.vy+=b.ay*DT;
+        const spd=Math.sqrt(b.vx*b.vx+b.vy*b.vy);
+        if (spd>S.max_speed){const sc=S.max_speed/spd;b.vx*=sc;b.vy*=sc;}
+        if (spd<MIN_SPEED){b.vx=0;b.vy=0;}
+        b.x+=b.vx*DT; b.y+=b.vy*DT;
+        const r=S.ball_radius;
+        if(b.x-r<0){b.x=r;b.vx=-b.vx*S.damping;}
+        if(b.x+r>W){b.x=W-r;b.vx=-b.vx*S.damping;}
+        if(b.y-r<0){b.y=r;b.vy=-b.vy*S.damping;}
+        if(b.y+r>H){b.y=H-r;b.vy=-b.vy*S.damping;}
+        b.vx*=wr; b.vy*=wr;
+        const gx=Math.floor(b.x/diam), gy=Math.floor(b.y/diam);
+        for(let ox=gx-1;ox<=gx+1;ox++) for(let oy=gy-1;oy<=gy+1;oy++){
+          const nb=cells.get(ox*10000+oy);
+          if(nb) for(const o of nb) if(b.id>o.id) collision(b,o);
         }
       }
     }
 
     function draw() {
-      ctx.clearRect(0, 0, W, H);
+      ctx.clearRect(0,0,W,H);
       for (const b of balls) {
-        ctx.beginPath();
-        ctx.arc(b.x, b.y, ball_radius, 0, Math.PI * 2);
-        if (b.id === 0) {
-          ctx.strokeStyle = '#ff6a00';
-          ctx.fillStyle = 'rgba(255,106,0,0.15)';
-        } else {
-          ctx.strokeStyle = '#fff';
-          ctx.fillStyle = 'rgba(255,255,255,0.06)';
-        }
-        ctx.lineWidth = 2;
-        ctx.fill();
-        ctx.stroke();
+        ctx.beginPath(); ctx.arc(b.x,b.y,S.ball_radius,0,Math.PI*2);
+        if (b.id===0){ctx.strokeStyle='#ff6a00';ctx.fillStyle='rgba(255,106,0,0.18)';}
+        else{ctx.strokeStyle='#3b8bff';ctx.fillStyle='rgba(59,139,255,0.06)';}
+        ctx.lineWidth=2; ctx.fill(); ctx.stroke();
       }
     }
 
+    let lastTime=performance.now(), accumulator=0;
     function loop(ts) {
-      const delta = Math.min((ts - lastTime) / 1000, 0.05);
-      lastTime = ts;
-      accumulator += delta;
-      while (accumulator >= DT) {
-        step();
-        accumulator -= DT;
-      }
-      draw();
-      requestAnimationFrame(loop);
+      const delta=Math.min((ts-lastTime)/1000,0.05); lastTime=ts; accumulator+=delta;
+      while(accumulator>=DT){step();accumulator-=DT;}
+      draw(); requestAnimationFrame(loop);
     }
-    requestAnimationFrame(ts => { lastTime = ts; requestAnimationFrame(loop); });
+    requestAnimationFrame(ts=>{lastTime=ts;requestAnimationFrame(loop);});
   })();
 
 </script>
